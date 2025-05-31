@@ -1,0 +1,1605 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChemDetective - Game Edukasi Asam Basa</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            color: white;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            animation: fadeInDown 1s ease-out;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            background: linear-gradient(45deg, #ff6b35, #f7931e);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .game-screen {
+            display: none;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        .game-screen.active {
+            display: block;
+        }
+
+        .main-menu {
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .menu-button {
+            display: inline-block;
+            margin: 15px;
+            padding: 15px 30px;
+            background: linear-gradient(45deg, #ff6b35, #f7931e);
+            color: white;
+            text-decoration: none;
+            border-radius: 25px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .menu-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+
+        .case-selection {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .case-card {
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 25px;
+            border: 2px solid rgba(255,255,255,0.2);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+        }
+
+        .case-card:hover {
+            transform: translateY(-5px);
+            border-color: #ff6b35;
+            box-shadow: 0 10px 30px rgba(255,107,53,0.3);
+        }
+
+        .case-card h3 {
+            color: #ff6b35;
+            margin-bottom: 15px;
+            font-size: 1.4rem;
+        }
+
+        .case-interface {
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 30px;
+            margin-top: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        .lab-tools {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .tool-button {
+            padding: 12px 20px;
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            border: none;
+            border-radius: 20px;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+        }
+
+        .tool-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        .tool-button:disabled {
+            background: #666;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .sample-area {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .sample {
+            background: rgba(255,255,255,0.2);
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .sample:hover {
+            border-color: #ff6b35;
+        }
+
+        .sample.selected {
+            border-color: #4CAF50;
+            background: rgba(76,175,80,0.2);
+        }
+
+        .ph-indicator {
+            width: 100%;
+            height: 40px;
+            border-radius: 20px;
+            margin: 10px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .result-panel {
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            min-height: 100px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        .back-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            padding: 10px 20px;
+            background: rgba(255,255,255,0.2);
+            border: none;
+            border-radius: 20px;
+            color: white;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+        }
+
+        .notebook {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            background: linear-gradient(45deg, #9c27b0, #673ab7);
+            border: none;
+            border-radius: 20px;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            border-radius: 15px;
+            padding: 30px;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 25px;
+            cursor: pointer;
+            color: #ff6b35;
+        }
+
+        .score-display {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            background: rgba(255,107,53,0.8);
+            padding: 10px 15px;
+            border-radius: 15px;
+            font-weight: bold;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-50px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .celebration {
+            animation: pulse 0.5s infinite;
+        }
+
+        .hint-box {
+            background: rgba(255,193,7,0.2);
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+        .quiz-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+
+        .quiz-content {
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 700px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+            border: 2px solid #ff6b35;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        }
+
+        .quiz-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .quiz-header h2 {
+            color: #ff6b35;
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .quiz-question {
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+            border-left: 5px solid #ff6b35;
+        }
+
+        .quiz-question h3 {
+            color: #fff;
+            margin-bottom: 20px;
+            font-size: 1.2rem;
+        }
+
+        .quiz-options {
+            display: grid;
+            gap: 10px;
+        }
+
+        .quiz-option {
+            background: rgba(255,255,255,0.1);
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 10px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: white;
+        }
+
+        .quiz-option:hover {
+            border-color: #ff6b35;
+            background: rgba(255,107,53,0.2);
+        }
+
+        .quiz-option.selected {
+            border-color: #4CAF50;
+            background: rgba(76,175,80,0.3);
+        }
+
+        .quiz-option.correct {
+            border-color: #4CAF50;
+            background: rgba(76,175,80,0.4);
+        }
+
+        .quiz-option.incorrect {
+            border-color: #f44336;
+            background: rgba(244,67,54,0.4);
+        }
+
+        .quiz-navigation {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 30px;
+        }
+
+        .quiz-progress {
+            font-size: 1.1rem;
+            color: #ff6b35;
+            font-weight: bold;
+        }
+
+        .quiz-btn {
+            padding: 12px 25px;
+            background: linear-gradient(45deg, #ff6b35, #f7931e);
+            border: none;
+            border-radius: 20px;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .quiz-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        .quiz-btn:disabled {
+            background: #666;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .quiz-results {
+            text-align: center;
+            padding: 30px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            margin-top: 20px;
+        }
+
+        .quiz-score {
+            font-size: 2rem;
+            color: #4CAF50;
+            margin-bottom: 15px;
+        }
+
+        .quiz-conclusion {
+            background: rgba(255,193,7,0.2);
+            border-left: 4px solid #ffc107;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔬 ChemDetective</h1>
+            <p>Pecahkan Misteri dengan Pengetahuan Asam-Basa!</p>
+        </div>
+
+        <!-- Main Menu -->
+        <div id="main-menu" class="game-screen active">
+            <div class="main-menu">
+                <button class="menu-button" onclick="showCaseSelection()">🕵️ Mulai Investigasi</button>
+                <button class="menu-button" onclick="showNotebook()">📚 Buku Catatan Kimia</button>
+                <button class="menu-button" onclick="showLab()">🧪 Lab Mini Virtual</button>
+            </div>
+        </div>
+
+        <!-- Case Selection -->
+        <div id="case-selection" class="game-screen">
+            <button class="back-button" onclick="showMainMenu()">← Kembali</button>
+            <button class="notebook" onclick="showNotebook()">📚 Catatan</button>
+            <div class="score-display">Skor: <span id="total-score">0</span></div>
+            
+            <h2 style="text-align: center; margin-bottom: 30px;">Pilih Kasus untuk Diselidiki</h2>
+            <div class="case-selection">
+                <div class="case-card" onclick="startCase(1)">
+                    <h3>🏛️ Kasus 1: Tanda Rahasia di Museum</h3>
+                    <p>Tulisan misterius muncul di dinding lukisan setelah hujan. Hanya terlihat saat terkena air...</p>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progress-case1" style="width: 0%"></div>
+                    </div>
+                </div>
+                <div class="case-card" onclick="startCase(2)">
+                    <h3>☠️ Kasus 2: Racun dalam Minuman</h3>
+                    <p>Seorang diplomat sakit setelah minum jus jeruk. Ada dugaan racun dimasukkan...</p>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progress-case2" style="width: 0%"></div>
+                    </div>
+                </div>
+                <div class="case-card" onclick="startCase(3)">
+                    <h3>🌱 Kasus 3: Tanah Terkutuk</h3>
+                    <p>Tanah di suatu desa tiba-tiba tidak bisa ditanami. Warga menyebutnya terkutuk...</p>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progress-case3" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Case Interface -->
+        <div id="case-interface" class="game-screen">
+            <button class="back-button" onclick="showCaseSelection()">← Kembali</button>
+            <button class="notebook" onclick="showNotebook()">📚 Catatan</button>
+            <div class="score-display">Skor: <span id="current-score">0</span></div>
+            
+            <div class="case-interface">
+                <h2 id="case-title">Kasus Aktif</h2>
+                <p id="case-description">Deskripsi kasus...</p>
+                
+                <div class="hint-box" id="case-hint">
+                    <strong>💡 Petunjuk:</strong> <span id="hint-text">Mulai dengan mengumpulkan sampel...</span>
+                </div>
+
+                <div class="lab-tools">
+                    <button class="tool-button" id="litmus-tool" onclick="useTool('litmus')">🟦 Kertas Lakmus</button>
+                    <button class="tool-button" id="phenol-tool" onclick="useTool('phenolphthalein')">🟣 Fenolftalein</button>
+                    <button class="tool-button" id="cabbage-tool" onclick="useTool('cabbage')">🟪 Kubis Ungu</button>
+                    <button class="tool-button" id="buffer-tool" onclick="useTool('buffer')">⚗️ Larutan Buffer</button>
+                </div>
+
+                <div class="sample-area" id="sample-area">
+                    <!-- Samples will be populated by JavaScript -->
+                </div>
+
+                <div class="result-panel" id="result-panel">
+                    <strong>Hasil Pengujian:</strong>
+                    <div id="test-results">Pilih sampel dan alat untuk memulai pengujian...</div>
+                </div>
+
+                <button class="menu-button" id="solve-button" onclick="showSolution()" style="display: none;">🎯 Selesaikan Kasus</button>
+            </div>
+        </div>
+
+        <!-- Lab Mini -->
+        <div id="lab-mini" class="game-screen">
+            <button class="back-button" onclick="showMainMenu()">← Kembali</button>
+            <div class="case-interface">
+                <h2>🧪 Lab Mini Virtual</h2>
+                <p>Pelajari sifat asam-basa dengan eksperimen interaktif</p>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 20px 0;">
+                    <div>
+                        <h3>Larutan Uji</h3>
+                        <select id="lab-solution" style="width: 100%; padding: 10px; border-radius: 5px;">
+                            <option value="hcl">Asam Klorida (HCl) - pH 1</option>
+                            <option value="lemon">Jus Lemon - pH 2</option>
+                            <option value="coffee">Kopi - pH 5</option>
+                            <option value="water">Air Murni - pH 7</option>
+                            <option value="soap">Sabun - pH 9</option>
+                            <option value="ammonia">Amonia - pH 11</option>
+                            <option value="naoh">Natrium Hidroksida - pH 13</option>
+                            <option value="vinegar">Cuka Dapur - pH 3</option>
+                            <option value="rainwater">Air Hujan (Normal) - pH 6</option>
+                            <option value="saltwater">Larutan Garam (NaCl) - pH 7</option>
+                            <option value="baking_soda">Baking Soda (NaHCO₃) - pH 8</option>
+                            <option value="milk_of_magnesia">Susu Magnesia (Mg(OH)₂) - pH 10</option>
+                            <option value="bleach">Pemutih (NaClO) - pH 12</option>
+                        </select>
+                    </div>
+                    <div>
+                        <h3>Indikator</h3>
+                        <select id="lab-indicator" style="width: 100%; padding: 10px; border-radius: 5px;">
+                            <option value="litmus">Kertas Lakmus</option>
+                            <option value="phenolphthalein">Fenolftalein</option>
+                            <option value="cabbage">Ekstrak Kubis Ungu</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <button class="menu-button" onclick="runLabTest()">🧪 Jalankan Tes</button>
+                
+                <div class="result-panel" id="lab-results">
+                    <strong>Hasil Lab:</strong>
+                    <div id="lab-output">Pilih larutan dan indikator, lalu jalankan tes...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for Notebook -->
+    <div id="notebook-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal()">&times;</span>
+            <h2>📚 Buku Catatan Kimia</h2>
+            <div id="notebook-content">
+                <h3>Teori Asam-Basa</h3>
+                <p><strong>pH (Potential of Hydrogen):</strong> Skala 0-14 untuk mengukur keasaman/kebasaan larutan.</p>
+                <ul>
+                    <li>pH < 7: Asam (semakin kecil = semakin asam)</li>
+                    <li>pH = 7: Netral</li>
+                    <li>pH > 7: Basa (semakin besar = semakin basa)</li>
+                </ul>
+
+                <h3>Indikator pH</h3>
+                <p><strong>Kertas Lakmus:</strong></p>
+                <ul>
+                    <li>Merah → Biru: Larutan basa</li>
+                    <li>Biru → Merah: Larutan asam</li>
+                </ul>
+
+                <p><strong>Fenolftalein:</strong></p>
+                <ul>
+                    <li>Tak berwarna: pH < 8.2 (asam/netral)</li>
+                    <li>Merah muda: pH > 8.2 (basa)</li>
+                </ul>
+
+                <p><strong>Ekstrak Kubis Ungu:</strong></p>
+                <ul>
+                    <li>Merah: Asam kuat</li>
+                    <li>Ungu: Netral</li>
+                    <li>Hijau/Biru: Basa</li>
+                </ul>
+
+                <h3>Reaksi Netralisasi</h3>
+                <p>Asam + Basa → Garam + Air</p>
+                <p>Contoh: HCl + NaOH → NaCl + H₂O</p>
+            </div>
+        </div>
+    </div>
+    <div id="quiz-modal" class="quiz-modal">
+    <div class="quiz-content">
+        <div class="quiz-header">
+            <h2>🧠 Kuis Pemahaman</h2>
+            <p>Uji pemahaman Anda tentang kasus yang baru diselesaikan!</p>
+        </div>
+        
+        <div id="quiz-container">
+            <!-- Quiz questions will be populated here -->
+        </div>
+        
+        <div class="quiz-navigation">
+            <div class="quiz-progress">
+                Pertanyaan <span id="current-question">1</span> dari <span id="total-questions">3</span>
+            </div>
+            <div>
+                <button id="prev-btn" class="quiz-btn" onclick="previousQuestion()" disabled>← Sebelumnya</button>
+                <button id="next-btn" class="quiz-btn" onclick="nextQuestion()">Selanjutnya →</button>
+                <button id="finish-btn" class="quiz-btn" onclick="finishQuiz()" style="display: none;">Selesai</button>
+            </div>
+        </div>
+        
+        <div id="quiz-results" class="quiz-results" style="display: none;">
+            <div class="quiz-score">
+                🎯 Skor: <span id="quiz-score-value">0</span>/3
+            </div>
+            <div id="quiz-feedback"></div>
+            <div class="quiz-conclusion">
+                <h4>📝 Kesimpulan:</h4>
+                <div id="case-conclusion"></div>
+            </div>
+            <button class="quiz-btn" onclick="closeQuiz()" style="margin-top: 20px;">Tutup Kuis</button>
+        </div>
+    </div>
+</div>
+    <script>
+        // Game State
+        let gameState = {
+            currentCase: 0,
+            selectedSample: null,
+            selectedTool: null,
+            caseProgress: [0, 0, 0],
+            totalScore: 0,
+            currentScore: 0,
+            casesCompleted: [false, false, false]
+        };
+
+        // Case Data
+        const cases = {
+            1: {
+                title: "🏛️ Kasus 1: Tanda Rahasia di Museum",
+                description: "Sebuah museum seni menemukan tulisan misterius muncul di dinding lukisan berharga setelah hujan. Tulisan hanya terlihat saat terkena air. Sebagai detektif kimia, Anda harus mengidentifikasi penyebab fenomena ini.",
+                hint: "Kumpulkan sampel dari berbagai area dan uji sifat asam-basanya. Perhatikan reaksi yang terjadi!",
+                samples: [
+                    {id: 'rainwater', name: 'Air Hujan', ph: 5.6, description: 'Sampel air hujan yang mengenai dinding'},
+                    {id: 'wallresidue', name: 'Residu Dinding', ph: 12, description: 'Residu putih di sekitar tulisan misterius'},
+                    {id: 'paintSample', name: 'Sampel Cat', ph: 7, description: 'Cat lukisan yang tidak berubah'}
+                ],
+                solution: "Pelaku menggunakan larutan basa (kapur/Ca(OH)₂) yang bereaksi dengan CO₂ di udara membentuk endapan putih saat hujan. Reaksi: Ca(OH)₂ + CO₂ → CaCO₃ + H₂O"
+            },
+            2: {
+                title: "☠️ Kasus 2: Racun dalam Minuman Diplomat",
+                description: "Seorang diplomat sakit usai minum jus jeruk di pesta. Ada dugaan racun dimasukkan ke dalam minuman. Anda harus menganalisis sampel untuk menemukan bukti keracunan.",
+                hint: "Bandingkan pH jus jeruk normal dengan sampel dari korban. Gunakan berbagai indikator untuk analisis yang akurat.",
+                samples: [
+                    {id: 'orangejuice', name: 'Jus Jeruk Normal', ph: 3.5, description: 'Sampel jus jeruk segar untuk perbandingan'},
+                    {id: 'suspectjuice', name: 'Jus dari Korban', ph: 1.2, description: 'Sisa jus jeruk yang diminum diplomat'},
+                    {id: 'vomit', name: 'Muntahan Korban', ph: 1.0, description: 'Sampel muntahan untuk analisis'}
+                ],
+                solution: "Terdapat asam kuat (HCl) dalam jus, karena pH tidak wajar untuk jus jeruk alami. pH 1.0-1.2 menunjukkan penambahan asam klorida yang berbahaya."
+            },
+            3: {
+                title: "🌱 Kasus 3: Misteri Tanah Terkutuk",
+                description: "Tanah di suatu desa tiba-tiba tidak bisa ditanami. Warga menyebutnya 'terkutuk'. Sebagai ilmuwan, Anda harus menemukan penyebab sebenarnya dan solusinya.",
+                hint: "Uji pH tanah dari berbagai lokasi. Cari sumber pencemaran dan hitung dosis penetral yang diperlukan.",
+                samples: [
+                    {id: 'normalsoil', name: 'Tanah Normal', ph: 6.8, description: 'Tanah dari area yang tidak terpengaruh'},
+                    {id: 'affectedsoil', name: 'Tanah Bermasalah', ph: 2.1, description: 'Tanah yang tidak bisa ditanami'},
+                    {id: 'factorywaste', name: 'Limbah Pabrik', ph: 1.5, description: 'Sampel dari pembuangan pabrik terdekat'}
+                ],
+                solution: "Tanah terkontaminasi asam sulfat (H₂SO₄) dari limbah pabrik baterai. Solusi: gunakan kapur pertanian (CaCO₃) untuk netralisasi dengan perbandingan yang tepat."
+            }
+        };
+
+        // Tool responses
+        const toolResponses = {
+            litmus: {
+                acidic: "Kertas lakmus biru berubah menjadi MERAH - menunjukkan sifat ASAM",
+                neutral: "Kertas lakmus tidak berubah warna - menunjukkan sifat NETRAL", 
+                basic: "Kertas lakmus merah berubah menjadi BIRU - menunjukkan sifat BASA"
+            },
+            phenolphthalein: {
+                acidic: "Fenolftalein tetap TIDAK BERWARNA - menunjukkan sifat ASAM atau NETRAL",
+                neutral: "Fenolftalein tetap TIDAK BERWARNA - menunjukkan sifat NETRAL",
+                basic: "Fenolftalein berubah menjadi MERAH MUDA - menunjukkan sifat BASA"
+            },
+            cabbage: {
+                acidic: "Ekstrak kubis ungu berubah menjadi MERAH - menunjukkan sifat ASAM KUAT",
+                neutral: "Ekstrak kubis ungu tetap UNGU - menunjukkan sifat NETRAL",
+                basic: "Ekstrak kubis ungu berubah menjadi HIJAU/BIRU - menunjukkan sifat BASA"
+            }
+        };
+
+        // Navigation Functions
+        function showMainMenu() {
+            hideAllScreens();
+            document.getElementById('main-menu').classList.add('active');
+        }
+
+        function showCaseSelection() {
+            hideAllScreens();
+            document.getElementById('case-selection').classList.add('active');
+            updateScoreDisplay();
+            updateProgressBars();
+        }
+
+        function showLab() {
+            hideAllScreens();
+            document.getElementById('lab-mini').classList.add('active');
+        }
+
+        function hideAllScreens() {
+            const screens = document.querySelectorAll('.game-screen');
+            screens.forEach(screen => screen.classList.remove('active'));
+        }
+
+        function startCase(caseNum) {
+            gameState.currentCase = caseNum;
+            gameState.selectedSample = null;
+            gameState.selectedTool = null;
+            gameState.currentScore = 0;
+            
+            hideAllScreens();
+            document.getElementById('case-interface').classList.add('active');
+            
+            loadCaseData(caseNum);
+        }
+
+        function loadCaseData(caseNum) {
+            const caseData = cases[caseNum];
+            
+            document.getElementById('case-title').textContent = caseData.title;
+            document.getElementById('case-description').textContent = caseData.description;
+            document.getElementById('hint-text').textContent = caseData.hint;
+            
+            // Load samples
+            const sampleArea = document.getElementById('sample-area');
+            sampleArea.innerHTML = '';
+            
+            caseData.samples.forEach(sample => {
+                const sampleDiv = document.createElement('div');
+                sampleDiv.className = 'sample';
+                sampleDiv.onclick = () => selectSample(sample.id);
+                sampleDiv.innerHTML = `
+                    <h4>${sample.name}</h4>
+                    <p>${sample.description}</p>
+                    <div class="ph-indicator" style="background: ${getPhColor(sample.ph)}">
+                        pH: ?
+                    </div>
+                `;
+                sampleDiv.setAttribute('data-sample-id', sample.id);
+                sampleArea.appendChild(sampleDiv);
+            });
+            
+            // Reset tools
+            const tools = document.querySelectorAll('.tool-button');
+            tools.forEach(tool => {
+                tool.disabled = false;
+                tool.style.opacity = '1';
+            });
+            
+            // Reset results
+            document.getElementById('test-results').textContent = 'Pilih sampel dan alat untuk memulai pengujian...';
+            document.getElementById('solve-button').style.display = 'none';
+        }
+
+        function selectSample(sampleId) {
+            // Remove previous selection
+            document.querySelectorAll('.sample').forEach(s => s.classList.remove('selected'));
+            
+            // Select new sample
+            document.querySelector(`[data-sample-id="${sampleId}"]`).classList.add('selected');
+            gameState.selectedSample = sampleId;
+            
+            updateTestStatus();
+        }
+
+        function useTool(toolName) {
+            if (!gameState.selectedSample) {
+                alert('Pilih sampel terlebih dahulu!');
+                return;
+            }
+            
+            gameState.selectedTool = toolName;
+            performTest();
+        }
+
+        function performTest() {
+            if (!gameState.selectedSample || !gameState.selectedTool) return;
+            
+            const caseData = cases[gameState.currentCase];
+            const sample = caseData.samples.find(s => s.id === gameState.selectedSample);
+            const tool = gameState.selectedTool;
+            
+            let result = '';
+            let phCategory = '';
+            
+            if (sample.ph < 7) {
+                phCategory = 'acidic';
+            } else if (sample.ph === 7) {
+                phCategory = 'neutral';
+            } else {
+                phCategory = 'basic';
+            }
+            
+            result = toolResponses[tool][phCategory];
+            result += `<br><br><strong>pH terukur: ${sample.ph}</strong>`;
+            
+            // Add educational context
+            if (sample.ph < 3) {
+                result += '<br><em>⚠️ Asam sangat kuat - berbahaya!</em>';
+            } else if (sample.ph > 11) {
+                result += '<br><em>⚠️ Basa sangat kuat - korosif!</em>';
+            } else if (Math.abs(sample.ph - 7) < 0.5) {
+                result += '<br><em>✅ Mendekati netral - relatif aman</em>';
+            }
+            
+            document.getElementById('test-results').innerHTML = result;
+            
+            // Update score
+            gameState.currentScore += 10;
+            document.getElementById('current-score').textContent = gameState.currentScore;
+            
+            // Show pH on sample
+            const sampleElement = document.querySelector(`[data-sample-id="${gameState.selectedSample}"] .ph-indicator`);
+            sampleElement.textContent = `pH: ${sample.ph}`;
+            sampleElement.style.background = getPhColor(sample.ph);
+            
+            // Check if enough tests done to solve case
+            checkCaseProgress();
+        }
+
+        function checkCaseProgress() {
+            const caseData = cases[gameState.currentCase];
+            const testedSamples = document.querySelectorAll('.ph-indicator');
+            let revealedCount = 0;
+            
+            testedSamples.forEach(indicator => {
+                if (indicator.textContent.includes('pH: ') && !indicator.textContent.includes('?')) {
+                    revealedCount++;
+                }
+            });
+            
+            if (revealedCount >= 2) {
+                document.getElementById('solve-button').style.display = 'inline-block';
+                document.getElementById('solve-button').classList.add('celebration');
+            }
+        }
+
+        function showSolution() {
+            const caseData = cases[gameState.currentCase];
+            const bonus = gameState.currentScore >= 30 ? 50 : 25;
+            
+            gameState.currentScore += bonus;
+            gameState.totalScore += gameState.currentScore;
+            gameState.casesCompleted[gameState.currentCase - 1] = true;
+            gameState.caseProgress[gameState.currentCase - 1] = 100;
+            
+            alert(`🎉 KASUS TERPECAHKAN! 🎉\n\nSolusi: ${caseData.solution}\n\nSkor kasus: ${gameState.currentScore}\nBonus penyelesaian: ${bonus}\nTotal skor: ${gameState.totalScore}`);
+            
+            updateScoreDisplay();
+            showCaseSelection();
+        }
+
+        function updateTestStatus() {
+            if (gameState.selectedSample && gameState.selectedTool) {
+                document.getElementById('test-results').innerHTML = `
+                    <strong>Siap menguji:</strong><br>
+                    Sampel: ${gameState.selectedSample}<br>
+                    Alat: ${gameState.selectedTool}<br>
+                    <button class="menu-button" onclick="performTest()">🧪 Jalankan Tes</button>
+                `;
+            }
+        }
+
+        function getPhColor(ph) {
+            if (ph <= 2) return 'linear-gradient(45deg, #ff1744, #f50057)'; // Red - Very acidic
+            if (ph <= 4) return 'linear-gradient(45deg, #ff5722, #ff9800)'; // Orange - Acidic
+            if (ph < 7) return 'linear-gradient(45deg, #ffeb3b, #ffc107)'; // Yellow - Slightly acidic
+            if (ph === 7) return 'linear-gradient(45deg, #4caf50, #8bc34a)'; // Green - Neutral
+            if (ph <= 9) return 'linear-gradient(45deg, #2196f3, #03a9f4)'; // Light blue - Slightly basic
+            if (ph <= 11) return 'linear-gradient(45deg, #3f51b5, #673ab7)'; // Blue - Basic
+            return 'linear-gradient(45deg, #9c27b0, #e91e63)'; // Purple - Very basic
+        }
+
+        function updateScoreDisplay() {
+            document.getElementById('total-score').textContent = gameState.totalScore;
+            if (document.getElementById('current-score')) {
+                document.getElementById('current-score').textContent = gameState.currentScore;
+            }
+        }
+
+        function updateProgressBars() {
+            for (let i = 0; i < 3; i++) {
+                const progressBar = document.getElementById(`progress-case${i + 1}`);
+                if (progressBar) {
+                    progressBar.style.width = `${gameState.caseProgress[i]}%`;
+                }
+            }
+        }
+
+        function showNotebook() {
+            document.getElementById('notebook-modal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('notebook-modal').style.display = 'none';
+        }
+
+        function runLabTest() {
+            const solution = document.getElementById('lab-solution').value;
+            const indicator = document.getElementById('lab-indicator').value;
+            
+            // Solution pH values
+            const solutionData = {
+                hcl: {name: 'Asam Klorida (HCl)', ph: 1},
+                lemon: {name: 'Jus Lemon', ph: 2},
+                coffee: {name: 'Kopi', ph: 5},
+                water: {name: 'Air Murni', ph: 7},
+                soap: {name: 'Sabun', ph: 9},
+                ammonia: {name: 'Amonia', ph: 11},
+                naoh: {name: 'Natrium Hidroksida', ph: 13},
+                vinegar: {name:'Cuka Dapur', pH: 3},
+                rainwater: {name: 'Air Hujan (Normal)', pH: 6},
+                saltwater: {name: 'Larutan Garam (NaCl)', pH: 7},
+                baking_soda: {name: 'Baking Soda (NaHCO₃)', pH: 8},
+                milk_of_magnesia: {name: 'Susu Magnesia (Mg(OH)₂)', pH: 10},
+                bleach: {name: 'Pemutih (NaClO)', pH: 12}
+            };
+            
+            const selectedSolution = solutionData[solution];
+            let result = `<strong>Hasil Uji:</strong><br>`;
+            result += `Larutan: ${selectedSolution.name} (pH ${selectedSolution.ph})<br>`;
+            result += `Indikator: ${indicator}<br><br>`;
+            
+            let phCategory = '';
+            if (selectedSolution.ph < 7) phCategory = 'acidic';
+            else if (selectedSolution.ph === 7) phCategory = 'neutral';
+            else phCategory = 'basic';
+            
+            result += `<strong>Hasil Indikator:</strong><br>`;
+            result += toolResponses[indicator][phCategory];
+            
+            // Add educational notes
+            result += '<br><br><strong>Catatan Pembelajaran:</strong><br>';
+            if (selectedSolution.ph <= 2) {
+                result += '⚠️ Asam sangat kuat - dalam kehidupan nyata, hindari kontak langsung!';
+            } else if (selectedSolution.ph >= 12) {
+                result += '⚠️ Basa sangat kuat - dapat menyebabkan luka bakar kimia!';
+            } else if (Math.abs(selectedSolution.ph - 7) <= 1) {
+                result += '✅ Relatif aman untuk penggunaan sehari-hari.';
+            }
+            
+            // Add color visualization
+            result += `<br><br><div class="ph-indicator" style="background: ${getPhColor(selectedSolution.ph)}; margin-top: 10px;">pH: ${selectedSolution.ph}</div>`;
+            
+            document.getElementById('lab-output').innerHTML = result;
+        }
+
+        // Click outside modal to close
+        window.onclick = function(event) {
+            const modal = document.getElementById('notebook-modal');
+            if (event.target === modal) {
+                closeModal();
+            }
+        }
+
+        // Additional helper functions
+        function resetGame() {
+            gameState = {
+                currentCase: 0,
+                selectedSample: null,
+                selectedTool: null,
+                caseProgress: [0, 0, 0],
+                totalScore: 0,
+                currentScore: 0,
+                casesCompleted: [false, false, false]
+            };
+            updateScoreDisplay();
+            updateProgressBars();
+            showMainMenu();
+        }
+
+        function showAchievements() {
+            let achievementText = "🏆 PENCAPAIAN ANDA:\n\n";
+            
+            let completedCases = gameState.casesCompleted.filter(c => c).length;
+            achievementText += `✅ Kasus Diselesaikan: ${completedCases}/3\n`;
+            achievementText += `🎯 Total Skor: ${gameState.totalScore}\n\n`;
+            
+            if (completedCases === 3) {
+                achievementText += "🌟 MASTER DETECTIVE! 🌟\n";
+                achievementText += "Anda telah menyelesaikan semua kasus!\n\n";
+            }
+            
+            if (gameState.totalScore >= 300) {
+                achievementText += "💎 PERFECT CHEMIST!\n";
+                achievementText += "Skor sempurna dalam investigasi!\n\n";
+            }
+            
+            achievementText += "Kemampuan yang telah dikuasai:\n";
+            if (gameState.casesCompleted[0]) achievementText += "• Identifikasi reaksi asam-basa\n";
+            if (gameState.casesCompleted[1]) achievementText += "• Analisis kontaminasi kimia\n";
+            if (gameState.casesCompleted[2]) achievementText += "• Perhitungan netralisasi\n";
+            
+            alert(achievementText);
+        }
+
+        function shareScore() {
+            const shareText = `🔬 Saya telah menyelesaikan ${gameState.casesCompleted.filter(c => c).length} kasus di ChemDetective dengan skor ${gameState.totalScore}! Game edukasi asam-basa yang seru! 🧪`;
+            
+            if (navigator.share) {
+                navigator.share({
+                    title: 'ChemDetective - Hasil Saya',
+                    text: shareText,
+                    url: window.location.href
+                });
+            } else {
+                // Fallback for browsers that don't support Web Share API
+                navigator.clipboard.writeText(shareText).then(() => {
+                    alert('Hasil telah disalin ke clipboard!');
+                }).catch(() => {
+                    alert(shareText);
+                });
+            }
+        }
+
+        function showTips() {
+            const tips = [
+                "💡 Tips: Gunakan berbagai indikator untuk hasil yang lebih akurat!",
+                "🔬 Tips: pH di bawah 3 atau di atas 11 menunjukkan larutan yang sangat kuat!",
+                "⚗️ Tips: Kertas lakmus paling mudah digunakan untuk pemula!",
+                "🧪 Tips: Ekstrak kubis ungu memberikan gradasi warna yang indah!",
+                "📊 Tips: Catat semua hasil pengujian untuk analisis yang lebih baik!",
+                "🎯 Tips: Kerjakan lab mini dulu untuk memahami sifat indikator!",
+                "💭 Tips: Pikirkan aplikasi asam-basa dalam kehidupan sehari-hari!"
+            ];
+            
+            const randomTip = tips[Math.floor(Math.random() * tips.length)];
+            alert(randomTip);
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeModal();
+            }
+            if (e.key === 'h' || e.key === 'H') {
+                showTips();
+            }
+            if (e.key === 'n' || e.key === 'N') {
+                showNotebook();
+            }
+        });
+
+        // Add achievement button to main menu
+        function addAchievementButton() {
+            const mainMenu = document.querySelector('.main-menu');
+            const achievementBtn = document.createElement('button');
+            achievementBtn.className = 'menu-button';
+            achievementBtn.onclick = showAchievements;
+            achievementBtn.innerHTML = '🏆 Pencapaian';
+            mainMenu.appendChild(achievementBtn);
+            
+            const tipsBtn = document.createElement('button');
+            tipsBtn.className = 'menu-button';
+            tipsBtn.onclick = showTips;
+            tipsBtn.innerHTML = '💡 Tips & Trik';
+            mainMenu.appendChild(tipsBtn);
+            
+            const resetBtn = document.createElement('button');
+            resetBtn.className = 'menu-button';
+            resetBtn.onclick = () => {
+                if (confirm('Yakin ingin reset semua progress?')) {
+                    resetGame();
+                }
+            };
+            resetBtn.innerHTML = '🔄 Reset Game';
+            resetBtn.style.background = 'linear-gradient(45deg, #f44336, #e91e63)';
+            mainMenu.appendChild(resetBtn);
+        }
+
+        // Enhanced case completion handling
+        function completeCaseWithCelebration(caseNum) {
+            // Create celebration effect
+            const celebration = document.createElement('div');
+            celebration.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                font-size: 4rem;
+                z-index: 9999;
+                animation: celebrationBounce 2s ease-out;
+                pointer-events: none;
+            `;
+            celebration.textContent = '🎉🔬✨';
+            document.body.appendChild(celebration);
+            
+            // Add celebration animation
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes celebrationBounce {
+                    0% { transform: translate(-50%, -50%) scale(0) rotate(0deg); opacity: 0; }
+                    50% { transform: translate(-50%, -50%) scale(1.2) rotate(180deg); opacity: 1; }
+                    100% { transform: translate(-50%, -50%) scale(1) rotate(360deg); opacity: 0; }
+                }
+            `;
+            document.head.appendChild(style);
+            
+            setTimeout(() => {
+                document.body.removeChild(celebration);
+                document.head.removeChild(style);
+            }, 2000);
+        }
+
+        // Enhanced tool selection with sound effects (visual feedback)
+        function enhanceToolFeedback() {
+            const tools = document.querySelectorAll('.tool-button');
+            tools.forEach(tool => {
+                tool.addEventListener('click', function() {
+                    this.style.transform = 'scale(0.95)';
+                    setTimeout(() => {
+                        this.style.transform = 'scale(1)';
+                    }, 150);
+                });
+            });
+        }
+
+        // Add contextual hints based on current progress
+        function updateContextualHints() {
+            if (!gameState.currentCase) return;
+            
+            const caseData = cases[gameState.currentCase];
+            const testedSamples = document.querySelectorAll('.ph-indicator');
+            let revealedCount = 0;
+            
+            testedSamples.forEach(indicator => {
+                if (indicator.textContent.includes('pH: ') && !indicator.textContent.includes('?')) {
+                    revealedCount++;
+                }
+            });
+            
+            let newHint = caseData.hint;
+            if (revealedCount === 1) {
+                newHint += " Tes sampel lain untuk perbandingan!";
+            } else if (revealedCount >= 2) {
+                newHint = "🎯 Anda sudah memiliki cukup data! Coba pecahkan kasusnya!";
+            }
+            
+            document.getElementById('hint-text').textContent = newHint;
+        }
+
+        // Enhanced sample testing with better visual feedback
+        function enhancedPerformTest() {
+            if (!gameState.selectedSample || !gameState.selectedTool) return;
+            
+            // Add loading animation
+            document.getElementById('test-results').innerHTML = '🧪 Sedang menganalisis... <div style="width: 100%; background: #333; height: 5px; border-radius: 5px; overflow: hidden; margin: 10px 0;"><div style="width: 100%; height: 100%; background: linear-gradient(45deg, #4CAF50, #45a049); animation: loading 2s ease-in-out;"></div></div>';
+            
+            // Add loading animation CSS
+            const loadingStyle = document.createElement('style');
+            loadingStyle.textContent = `
+                @keyframes loading {
+                    0% { transform: translateX(-100%); }
+                    100% { transform: translateX(0%); }
+                }
+            `;
+            document.head.appendChild(loadingStyle);
+            
+            setTimeout(() => {
+                performTest();
+                document.head.removeChild(loadingStyle);
+                updateContextualHints();
+            }, 2000);
+        }
+
+        // Initialize game with all enhancements
+        document.addEventListener('DOMContentLoaded', function() {
+            updateScoreDisplay();
+            updateProgressBars();
+            addAchievementButton();
+            enhanceToolFeedback();
+            
+            // Add welcome message
+            setTimeout(() => {
+                alert('🔬 Selamat datang di ChemDetective! 🔬\n\nAnda adalah seorang detektif kimia yang menggunakan pengetahuan asam-basa untuk memecahkan misteri.\n\nTips:\n• Tekan "N" untuk membuka catatan\n• Tekan "H" untuk tips\n• Tekan "Esc" untuk menutup modal\n\nSelamat menyelidiki!');
+            }, 1000);
+        });
+
+        // Add final score celebration
+        function checkGameCompletion() {
+            const completedCases = gameState.casesCompleted.filter(c => c).length;
+            if (completedCases === 3) {
+                setTimeout(() => {
+                    alert(`🎊 SELAMAT! 🎊\n\nAnda telah menyelesaikan semua kasus ChemDetective!\n\nTotal Skor: ${gameState.totalScore}\n\nAnda sekarang adalah MASTER DETECTIVE dalam bidang kimia asam-basa!\n\n🏆 Pencapaian Terbuka:\n• Master of pH\n• Chemical Investigator\n• Acid-Base Expert\n\nTerima kasih telah bermain!`);
+                }, 1000);
+            }
+        }
+
+        // Enhanced solve function with celebration
+        function enhancedShowSolution() {
+            const caseData = cases[gameState.currentCase];
+            const bonus = gameState.currentScore >= 30 ? 50 : 25;
+            
+            gameState.currentScore += bonus;
+            gameState.totalScore += gameState.currentScore;
+            gameState.casesCompleted[gameState.currentCase - 1] = true;
+            gameState.caseProgress[gameState.currentCase - 1] = 100;
+            
+            completeCaseWithCelebration(gameState.currentCase);
+            
+            setTimeout(() => {
+                alert(`🎉 KASUS TERPECAHKAN! 🎉\n\nSolusi: ${caseData.solution}\n\nSkor kasus: ${gameState.currentScore}\nBonus penyelesaian: ${bonus}\nTotal skor: ${gameState.totalScore}\n\n🔬 Pengetahuan baru dikuasai!`);
+                
+                updateScoreDisplay();
+                checkGameCompletion();
+                showCaseSelection();
+            }, 2000);
+        }
+
+        // Override the original showSolution function
+        window.showSolution = enhancedShowSolution;
+
+        // Add footer with credits
+        const footer = document.createElement('div');
+        footer.style.cssText = `
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            font-size: 0.8rem;
+            opacity: 0.7;
+            background: rgba(0,0,0,0.5);
+            padding: 5px 10px;
+            border-radius: 10px;
+        `;
+        footer.innerHTML = '🔬 ChemDetective v1.0 | Edugame Asam-Basa';
+        document.body.appendChild(footer);
+
+        // Console easter egg for developers
+        console.log(`
+        🔬 ChemDetective Developer Console 🔬
+        =====================================
+        
+        Selamat datang, Developer!
+        
+        Cheat codes (gunakan di console):
+        • gameState.totalScore = 1000  // Set skor
+        • gameState.casesCompleted = [true,true,true]  // Unlock semua
+        • resetGame()  // Reset game
+        • showAchievements()  // Lihat pencapaian
+        
+        Game ini dibuat untuk edukasi kimia asam-basa.
+        Selamat bermain dan belajar! 🧪
+        `);
+        // Quiz System
+        let quizState = {
+            currentCase: 0,
+            currentQuestion: 0,
+            answers: [],
+            score: 0,
+            questions: []
+        };
+
+        // Quiz questions for each case
+        const quizQuestions = {
+            1: [
+                {
+                    question: "Mengapa tulisan misterius hanya muncul saat terkena air hujan?",
+                    options: [
+                        "Air hujan bereaksi dengan cat lukisan",
+                        "Air hujan (pH 5.6) bereaksi dengan residu basa Ca(OH)₂ membentuk endapan CaCO₃",
+                        "Air hujan mengandung tinta rahasia",
+                        "Air hujan mengaktifkan pigmen tersembunyi"
+                    ],
+                    correct: 1,
+                    explanation: "Air hujan yang bersifat asam lemah bereaksi dengan kapur Ca(OH)₂ yang bersifat basa, membentuk endapan kalsium karbonat (CaCO₃) yang berwarna putih dan terlihat sebagai tulisan."
+                },
+                {
+                    question: "Apa yang terjadi pada reaksi Ca(OH)₂ + CO₂ → CaCO₃ + H₂O?",
+                    options: [
+                        "Reaksi asam-basa biasa",
+                        "Reaksi pembentukan endapan dari basa dengan CO₂ udara",
+                        "Reaksi pembakaran",
+                        "Reaksi fotosintesis"
+                    ],
+                    correct: 1,
+                    explanation: "Ini adalah reaksi karbonasi dimana kalsium hidroksida (basa) bereaksi dengan karbon dioksida dari udara membentuk endapan kalsium karbonat yang tidak larut dalam air."
+                },
+                {
+                    question: "pH residu dinding yang ditemukan adalah 12. Ini menunjukkan sifat apa?",
+                    options: [
+                        "Netral",
+                        "Asam lemah",
+                        "Basa kuat",
+                        "Asam kuat"
+                    ],
+                    correct: 2,
+                    explanation: "pH 12 menunjukkan sifat basa yang sangat kuat. Skala pH > 11 dikategorikan sebagai basa kuat yang dapat berbahaya jika terkena kulit."
+                }
+            ],
+            2: [
+                {
+                    question: "Mengapa pH jus jeruk korban mencapai 1.2 sedangkan jus jeruk normal pH 3.5?",
+                    options: [
+                        "Jus jeruk sudah basi",
+                        "Ditambahkan asam kuat seperti HCl",
+                        "Proses fermentasi alami",
+                        "Kontaminasi bakteri"
+                    ],
+                    correct: 1,
+                    explanation: "Penurunan pH yang drastis dari 3.5 ke 1.2 menunjukkan penambahan asam kuat seperti HCl. Perubahan sebesar ini tidak mungkin terjadi secara alami."
+                },
+                {
+                    question: "Apa bahaya pH 1.0-1.2 jika dikonsumsi manusia?",
+                    options: [
+                        "Tidak berbahaya",
+                        "Hanya menyebabkan mual ringan",
+                        "Dapat menyebabkan luka bakar internal dan keracunan serius",
+                        "Hanya mengubah rasa"
+                    ],
+                    correct: 2,
+                    explanation: "pH 1.0-1.2 sangat asam dan korosif. Dapat menyebabkan luka bakar pada mulut, tenggorokan, dan saluran pencernaan, serta keracunan yang berpotensi fatal."
+                },
+                {
+                    question: "Indikator apa yang paling tepat untuk membedakan pH 1.2 dan pH 3.5?",
+                    options: [
+                        "Kertas lakmus saja sudah cukup",
+                        "Fenolftalein",
+                        "Kombinasi kertas lakmus dan ekstrak kubis ungu",
+                        "Indikator universal atau pH meter"
+                    ],
+                    correct: 3,
+                    explanation: "Untuk membedakan tingkat keasaman yang spesifik, diperlukan indikator universal atau pH meter yang dapat menunjukkan nilai pH yang tepat, bukan hanya asam/basa secara umum."
+                }
+            ],
+            3: [
+                {
+                    question: "Apa penyebab utama tanah menjadi sangat asam (pH 2.1)?",
+                    options: [
+                        "Hujan asam alami",
+                        "Pencemaran limbah asam sulfat (H₂SO₄) dari pabrik baterai",
+                        "Penggunaan pupuk berlebihan",
+                        "Aktivitas mikroorganisme"
+                    ],
+                    correct: 1,
+                    explanation: "pH 2.1 menunjukkan kontaminasi asam yang sangat kuat. Limbah pabrik baterai mengandung asam sulfat yang dapat menurunkan pH tanah secara drastis."
+                },
+                {
+                    question: "Bagaimana cara menetralisir tanah dengan pH 2.1?",
+                    options: [
+                        "Menambahkan air",
+                        "Menggunakan kapur pertanian (CaCO₃) dengan perhitungan dosis yang tepat",
+                        "Menambahkan pupuk organik",
+                        "Membiarkan secara alami"
+                    ],
+                    correct: 1,
+                    explanation: "Kapur pertanian (CaCO₃) bersifat basa dan dapat menetralisir keasaman tanah melalui reaksi: CaCO₃ + 2H⁺ → Ca²⁺ + H₂O + CO₂. Dosis harus dihitung berdasarkan tingkat keasaman."
+                },
+                {
+                    question: "Mengapa tanaman tidak bisa tumbuh di tanah pH 2.1?",
+                    options: [
+                        "Tanah terlalu basah",
+                        "pH yang sangat asam mengganggu penyerapan nutrisi dan merusak akar tanaman",
+                        "Kurang cahaya matahari",
+                        "Tanah terlalu keras"
+                    ],
+                    correct: 1,
+                    explanation: "pH sangat asam (2.1) menyebabkan ion-ion logam beracun menjadi lebih mudah larut dan diserap tanaman, sekaligus mengganggu ketersediaan nutrisi penting seperti nitrogen, fosfor, dan kalium."
+                }
+            ]
+        };
+
+        // Case conclusions
+        const caseConclusions = {
+            1: "Kasus museum ini mengajarkan bahwa reaksi asam-basa dapat terjadi secara alami di lingkungan. Kalsium hidroksida yang digunakan pelaku bereaksi dengan CO₂ dan air hujan yang asam lemah, menciptakan efek visual yang menarik. Pemahaman tentang pH dan reaksi kimia membantu kita memecahkan misteri yang tampak supernatural.",
+            2: "Kasus keracunan ini menunjukkan pentingnya analisis kimia dalam investigasi forensik. Perubahan pH yang drastis merupakan indikator kuat adanya kontaminasi berbahaya. Pengetahuan tentang sifat asam-basa membantu mengidentifikasi jenis racun dan tingkat bahayanya, yang crucial untuk penanganan medis yang tepat.",
+            3: "Kasus pencemaran tanah ini menggambarkan dampak limbah industri terhadap lingkungan. Pemahaman tentang pH tanah dan cara netralisasinya sangat penting untuk rehabilitasi lahan. Kasus ini juga mengajarkan bahwa masalah lingkungan yang tampak 'mistis' seringkali memiliki penjelasan ilmiah yang rasional."
+        };
+
+        function startQuiz(caseNum) {
+            quizState.currentCase = caseNum;
+            quizState.currentQuestion = 0;
+            quizState.answers = [];
+            quizState.score = 0;
+            quizState.questions = quizQuestions[caseNum];
+            
+            document.getElementById('quiz-modal').style.display = 'flex';
+            document.getElementById('total-questions').textContent = quizState.questions.length;
+            
+            displayQuestion();
+        }
+
+        function displayQuestion() {
+            const question = quizState.questions[quizState.currentQuestion];
+            const container = document.getElementById('quiz-container');
+            
+            container.innerHTML = `
+                <div class="quiz-question">
+                    <h3>❓ ${question.question}</h3>
+                    <div class="quiz-options">
+                        ${question.options.map((option, index) => `
+                            <div class="quiz-option" onclick="selectOption(${index})" data-option="${index}">
+                                ${String.fromCharCode(65 + index)}. ${option}
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('current-question').textContent = quizState.currentQuestion + 1;
+            
+            // Update navigation buttons
+            document.getElementById('prev-btn').disabled = quizState.currentQuestion === 0;
+            document.getElementById('next-btn').style.display = quizState.currentQuestion < quizState.questions.length - 1 ? 'inline-block' : 'none';
+            document.getElementById('finish-btn').style.display = quizState.currentQuestion === quizState.questions.length - 1 ? 'inline-block' : 'none';
+            
+            // Show previous answer if exists
+            if (quizState.answers[quizState.currentQuestion] !== undefined) {
+                const selectedOption = document.querySelector(`[data-option="${quizState.answers[quizState.currentQuestion]}"]`);
+                if (selectedOption) {
+                    selectedOption.classList.add('selected');
+                }
+            }
+        }
+
+        function selectOption(optionIndex) {
+            // Remove previous selection
+            document.querySelectorAll('.quiz-option').forEach(opt => opt.classList.remove('selected'));
+            
+            // Add selection to clicked option
+            document.querySelector(`[data-option="${optionIndex}"]`).classList.add('selected');
+            
+            // Store answer
+            quizState.answers[quizState.currentQuestion] = optionIndex;
+        }
+
+        function nextQuestion() {
+            if (quizState.answers[quizState.currentQuestion] === undefined) {
+                alert('Silakan pilih jawaban terlebih dahulu!');
+                return;
+            }
+            
+            quizState.currentQuestion++;
+            displayQuestion();
+        }
+
+        function previousQuestion() {
+            quizState.currentQuestion--;
+            displayQuestion();
+        }
+
+        function finishQuiz() {
+            if (quizState.answers[quizState.currentQuestion] === undefined) {
+                alert('Silakan pilih jawaban terlebih dahulu!');
+                return;
+            }
+            
+            // Calculate score
+            quizState.score = 0;
+            for (let i = 0; i < quizState.questions.length; i++) {
+                if (quizState.answers[i] === quizState.questions[i].correct) {
+                    quizState.score++;
+                }
+            }
+            
+            showQuizResults();
+        }
+
+        function showQuizResults() {
+            document.getElementById('quiz-container').style.display = 'none';
+            document.querySelector('.quiz-navigation').style.display = 'none';
+            document.getElementById('quiz-results').style.display = 'block';
+            
+            document.getElementById('quiz-score-value').textContent = quizState.score;
+            
+            // Generate feedback
+            let feedback = '<div style="text-align: left; margin: 20px 0;">';
+            for (let i = 0; i < quizState.questions.length; i++) {
+                const question = quizState.questions[i];
+                const userAnswer = quizState.answers[i];
+                const isCorrect = userAnswer === question.correct;
+                
+                feedback += `
+                    <div style="margin-bottom: 20px; padding: 15px; background: rgba(255,255,255,0.1); border-radius: 10px;">
+                        <h4 style="color: ${isCorrect ? '#4CAF50' : '#f44336'};">
+                            ${isCorrect ? '✅' : '❌'} Pertanyaan ${i + 1}
+                        </h4>
+                        <p><strong>Jawaban Anda:</strong> ${question.options[userAnswer]}</p>
+                        ${!isCorrect ? `<p><strong>Jawaban Benar:</strong> ${question.options[question.correct]}</p>` : ''}
+                        <p><strong>Penjelasan:</strong> ${question.explanation}</p>
+                    </div>
+                `;
+            }
+            feedback += '</div>';
+            
+            document.getElementById('quiz-feedback').innerHTML = feedback;
+            
+            // Show conclusion
+            document.getElementById('case-conclusion').innerHTML = caseConclusions[quizState.currentCase];
+            
+            // Add bonus score
+            const bonusScore = quizState.score * 20;
+            gameState.totalScore += bonusScore;
+            updateScoreDisplay();
+            
+            // Show achievement message
+            setTimeout(() => {
+                let message = `🎓 Kuis Selesai!\n\nSkor Kuis: ${quizState.score}/3\nBonus Skor: ${bonusScore}\n\n`;
+                
+                if (quizState.score === 3) {
+                    message += "🏆 SEMPURNA! Anda benar-benar memahami konsep asam-basa!";
+                } else if (quizState.score === 2) {
+                    message += "👍 BAGUS! Pemahaman Anda sudah sangat baik!";
+                } else if (quizState.score === 1) {
+                    message += "📚 LUMAYAN! Masih perlu belajar lebih dalam lagi.";
+                } else {
+                    message += "💪 SEMANGAT! Baca kembali materi dan coba lagi!";
+                }
+                
+                alert(message);
+            }, 1000);
+        }
+
+        function closeQuiz() {
+            document.getElementById('quiz-modal').style.display = 'none';
+            
+            // Reset quiz display
+            document.getElementById('quiz-container').style.display = 'block';
+            document.querySelector('.quiz-navigation').style.display = 'flex';
+            document.getElementById('quiz-results').style.display = 'none';
+        }
+
+        // Modify the original showSolution function to include quiz
+        function enhancedShowSolutionWithQuiz() {
+            const caseData = cases[gameState.currentCase];
+            const bonus = gameState.currentScore >= 30 ? 50 : 25;
+            
+            gameState.currentScore += bonus;
+            gameState.totalScore += gameState.currentScore;
+            gameState.casesCompleted[gameState.currentCase - 1] = true;
+            gameState.caseProgress[gameState.currentCase - 1] = 100;
+            
+            completeCaseWithCelebration(gameState.currentCase);
+            
+            setTimeout(() => {
+                alert(`🎉 KASUS TERPECAHKAN! 🎉\n\nSolusi: ${caseData.solution}\n\nSkor kasus: ${gameState.currentScore}\nBonus penyelesaian: ${bonus}\nTotal skor: ${gameState.totalScore}\n\n🧠 Lanjut ke kuis pemahaman?`);
+                
+                updateScoreDisplay();
+                
+                // Start quiz after case completion
+                setTimeout(() => {
+                    startQuiz(gameState.currentCase);
+                }, 500);
+                
+            }, 2000);
+        }
+
+        // Override the showSolution function
+        window.showSolution = enhancedShowSolutionWithQuiz;
+
+        // Add quiz completion check to overall game completion
+        function checkGameCompletionWithQuiz() {
+            const completedCases = gameState.casesCompleted.filter(c => c).length;
+            if (completedCases === 3) {
+                setTimeout(() => {
+                    alert(`🎊 SELAMAT! 🎊\n\nAnda telah menyelesaikan semua kasus ChemDetective beserta kuisnya!\n\nTotal Skor: ${gameState.totalScore}\n\nAnda sekarang adalah MASTER DETECTIVE dalam bidang kimia asam-basa!\n\n🏆 Pencapaian Terbuka:\n• Master of pH\n• Chemical Investigator\n• Acid-Base Expert\n• Quiz Champion\n\nTerima kasih telah bermain dan belajar!`);
+                }, 1000);
+            }
+        }
+
+        // Override the original completion check
+        window.checkGameCompletion = checkGameCompletionWithQuiz;
+    </script>
+</body>
+</html>
